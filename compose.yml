@@ -1,0 +1,13 @@
+services:
+  audiolibrix-abs:
+    image: ghcr.io/fhavrlent/audiolibrix-abs:latest
+    container_name: audiolibrix-abs
+    environment:
+      - LANGUAGES=cs,sk # book languages to return; "all" disables the filter
+      - ADD_LINK_TO_DESCRIPTION=true
+      - MAX_RESULTS=10
+      - CONCURRENCY=5
+      # - AUTH_TOKEN=change-me # if set, Audiobookshelf must send exactly this value
+    restart: unless-stopped
+    ports:
+      - "3001:3001"

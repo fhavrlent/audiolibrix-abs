@@ -1,0 +1,5 @@
+testdata
+*_test.go
+*.md
+compose.yml
+.git
