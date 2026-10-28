@@ -70,6 +70,8 @@ var (
 	minutesRe    = regexp.MustCompile(`(\d+)\s*min`)
 	yearRe       = regexp.MustCompile(`\((\d{4})\)`)
 	seriesLangRe = regexp.MustCompile(`\s*\([A-Z]{2}\)$`)
+	// "https://www.audiolibrix.com/cs/Directory/Book/596/Audiokniha-..." or "audiolibrix:596"
+	bookRefRe = regexp.MustCompile(`(?i)^(?:audiolibrix:\s*|(?:https?://)?(?:www\.)?audiolibrix\.com/[^?#]*?/Directory/Book/)(\d+)(?:[/?#].*)?$`)
 )
 
 type Client struct {
@@ -109,7 +111,12 @@ type SearchOptions struct {
 
 // Search runs a site search, ranks the results and fetches detail pages in ranked
 // order until MaxResults books in an allowed language are found.
+// A query that is an Audiolibrix book link or "audiolibrix:<id>" skips the search and
+// returns that book, which also covers books no longer listed in search results.
 func (c *Client) Search(ctx context.Context, query, author string, opts SearchOptions) ([]Book, error) {
+	if m := bookRefRe.FindStringSubmatch(strings.TrimSpace(query)); m != nil {
+		return c.lookup(ctx, m[1], opts)
+	}
 	doc, err := c.fetch(ctx, siteURL+localePath+"/Search/Results?query="+url.QueryEscape(query))
 	if err != nil {
 		return nil, err
@@ -149,7 +156,7 @@ func (c *Client) Search(ctx context.Context, query, author string, opts SearchOp
 				continue
 			}
 			if opts.AddLink {
-				b.Description = fmt.Sprintf(`<a href="%s">Audiolibrix</a><br><br>%s`, batch[i].URL, b.Description)
+				addLink(b, batch[i].URL)
 			}
 			books = append(books, *b)
 		}
@@ -158,6 +165,30 @@ func (c *Client) Search(ctx context.Context, query, author string, opts SearchOp
 		books = books[:opts.MaxResults]
 	}
 	return books, nil
+}
+
+// lookup fetches a single book by its Audiolibrix ID. The language filter is not
+// applied, since the book was asked for explicitly.
+func (c *Client) lookup(ctx context.Context, id string, opts SearchOptions) ([]Book, error) {
+	// The site redirects this to the full book URL, or to the catalog for unknown IDs.
+	u := siteURL + localePath + "/Directory/Book/" + id
+	doc, err := c.fetch(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+	b := parseBook(doc, candidate{ID: id, URL: u})
+	if b.Title == "" {
+		slog.Info("book not found", "id", id)
+		return []Book{}, nil
+	}
+	if opts.AddLink {
+		addLink(&b, u)
+	}
+	return []Book{b}, nil
+}
+
+func addLink(b *Book, u string) {
+	b.Description = fmt.Sprintf(`<a href="%s">Audiolibrix</a><br><br>%s`, u, b.Description)
 }
 
 func parseSearch(doc *goquery.Document) []candidate {

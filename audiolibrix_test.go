@@ -149,3 +149,24 @@ func TestRank(t *testing.T) {
 		t.Errorf("author-only query: ranked ids = %v, want %v", got, want)
 	}
 }
+
+func TestBookRef(t *testing.T) {
+	for in, want := range map[string]string{
+		"https://www.audiolibrix.com/cs/Directory/Book/596/Audiokniha-Druhy-gong-Agatha-Christie": "596",
+		"https://www.audiolibrix.com/sk/Directory/Book/596":                                       "596",
+		"www.audiolibrix.com/cs/Directory/Book/596/x?utm_source=google":                           "596",
+		"audiolibrix:596":  "596",
+		"Audiolibrix: 596": "596",
+		"Druhý gong":       "",
+		"1984":             "",
+		"https://example.com/cs/Directory/Book/596": "",
+	} {
+		got := ""
+		if m := bookRefRe.FindStringSubmatch(in); m != nil {
+			got = m[1]
+		}
+		if got != want {
+			t.Errorf("bookRefRe(%q) = %q, want %q", in, got, want)
+		}
+	}
+}

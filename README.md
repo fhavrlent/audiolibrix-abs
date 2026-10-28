@@ -64,6 +64,14 @@ To pin a version instead of `latest`, use e.g. `ghcr.io/fhavrlent/audiolibrix-ab
 4. Authorization Header Value: any non-empty value (or your `AUTH_TOKEN`)
 5. Save, then choose *Audiolibrix* as the provider when matching a book.
 
+### Books missing from search
+
+Audiolibrix leaves books that are no longer sold out of its search, but their pages usually still
+work. To match such a book, put its Audiolibrix link (e.g.
+`https://www.audiolibrix.com/cs/Directory/Book/596/Audiokniha-Druhy-gong-Agatha-Christie`) or
+`audiolibrix:596` in the search box. The provider then reads that page directly and skips the
+`LANGUAGES` filter.
+
 ## How it works
 
 The provider runs Audiolibrix's regular search (`/cs/Search/Results`), ranks the results
