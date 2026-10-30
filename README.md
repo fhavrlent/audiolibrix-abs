@@ -89,9 +89,9 @@ curl -H 'Authorization: x' 'localhost:3001/search?query=hobit&author=tolkien'
 
 Build the image locally: `docker build -t audiolibrix-abs .`
 
-Tests run against reduced copies of Audiolibrix pages in `testdata/`, which keep only the markup
-the parser reads. When Audiolibrix changes its HTML, update them and adjust the parser in
-`audiolibrix.go`.
+Tests run against pages in `testdata/` that copy only the markup the parser reads from
+Audiolibrix (class names and field labels), filled with made-up books. When Audiolibrix changes
+its HTML, update them and adjust the parser in `audiolibrix.go`.
 
 ## Releasing
 
