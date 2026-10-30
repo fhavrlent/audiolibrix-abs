@@ -176,11 +176,12 @@ func (c *Client) lookup(ctx context.Context, id string, opts SearchOptions) ([]B
 	if err != nil {
 		return nil, err
 	}
-	b := parseBook(doc, candidate{ID: id, URL: u})
-	if b.Title == "" {
+	// Only book pages have the metadata list; the catalog has an <h1> of its own.
+	if doc.Find("dl.alx-metadata").Length() == 0 {
 		slog.Info("book not found", "id", id)
 		return []Book{}, nil
 	}
+	b := parseBook(doc, candidate{ID: id, URL: u})
 	if opts.AddLink {
 		addLink(&b, u)
 	}
@@ -235,7 +236,7 @@ func parseBook(doc *goquery.Document, cand candidate) Book {
 
 	b := Book{Title: cand.Title}
 	if b.Title == "" {
-		b.Title = strings.TrimPrefix(strings.TrimSpace(doc.Find(`h1[itemprop="name"]`).Text()), "Audiokniha ")
+		b.Title = strings.TrimPrefix(strings.TrimSpace(doc.Find("h1").First().Text()), "Audiokniha ")
 	}
 	b.Subtitle = strings.TrimSpace(doc.Find("p.lead").First().Text())
 

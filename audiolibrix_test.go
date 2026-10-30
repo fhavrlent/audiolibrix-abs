@@ -111,6 +111,13 @@ func TestParseBook(t *testing.T) {
 	}
 }
 
+func TestParseBookTitleFromPage(t *testing.T) {
+	// Direct lookups have no search result to take the title from.
+	if got := parseBook(loadDoc(t, "book_zaklinac2.html"), candidate{}).Title; got != "Zaklínač II: Meč osudu" {
+		t.Errorf("title = %q", got)
+	}
+}
+
 func TestParseSeries(t *testing.T) {
 	got := parseSeries([]string{"Harry Potter (DE) #6", "Zaklínač #2", "Bez čísla"})
 	want := []Series{{"Harry Potter", "6"}, {"Zaklínač", "2"}, {"Bez čísla", ""}}
